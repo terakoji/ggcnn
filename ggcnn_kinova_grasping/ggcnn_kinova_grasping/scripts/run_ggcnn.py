@@ -16,6 +16,8 @@ from cv_bridge import CvBridge
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import Image, CameraInfo
 from std_msgs.msg import Float32MultiArray
+import tf2_ros
+
 
 bridge = CvBridge()
 
@@ -31,6 +33,7 @@ grasp_plain_pub = rospy.Publisher('ggcnn/img/grasp_plain', Image, queue_size=1)
 depth_pub = rospy.Publisher('ggcnn/img/depth', Image, queue_size=1)
 ang_pub = rospy.Publisher('ggcnn/img/ang', Image, queue_size=1)
 cmd_pub = rospy.Publisher('ggcnn/out/command', Float32MultiArray, queue_size=1)
+
 
 # Initialise some globals.
 prev_mp = np.array([150, 150])
@@ -155,6 +158,9 @@ def depth_callback(depth_message):
         ang = ang_out[max_pixel[0], max_pixel[1]]
         width = width_out[max_pixel[0], max_pixel[1]]
 
+        rospy.loginfo('angle = {}'.format(ang))
+        rospy.loginfo('width = {}'.format(width))
+        
         # Convert max_pixel back to uncropped/resized image coordinates in order to do the camera transform.
         max_pixel = ((np.array(max_pixel) / 300.0 * crop_size) + np.array([(480 - crop_size)//2, (640 - crop_size) // 2]))
         max_pixel = np.round(max_pixel).astype(np.int)
