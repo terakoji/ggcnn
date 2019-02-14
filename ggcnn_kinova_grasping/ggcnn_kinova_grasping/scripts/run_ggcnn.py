@@ -18,7 +18,8 @@ from sensor_msgs.msg import Image, CameraInfo
 from std_msgs.msg import Float32MultiArray
 import tf2_ros
 
-
+import tf_conversions
+from geometry_msgs.msg import TransformStamped
 bridge = CvBridge()
 
 # Load the Network.
@@ -33,6 +34,7 @@ grasp_plain_pub = rospy.Publisher('ggcnn/img/grasp_plain', Image, queue_size=1)
 depth_pub = rospy.Publisher('ggcnn/img/depth', Image, queue_size=1)
 ang_pub = rospy.Publisher('ggcnn/img/ang', Image, queue_size=1)
 cmd_pub = rospy.Publisher('ggcnn/out/command', Float32MultiArray, queue_size=1)
+tf_br = tf2_ros.TransformBroadCaster()
 
 
 # Initialise some globals.
@@ -206,9 +208,21 @@ def depth_callback(depth_message):
         cmd_msg.data = [x, y, z, ang, width, depth_center]
         cmd_pub.publish(cmd_msg)
 
+        cam_to_cmd = TransformStamped()
+        cam_to_cmd.header = depth_message.header
+        cam_to_cmd.child_frame_id = 'grasp'
+        cam_to_cmd.transform.translation.x = x
+        cam_to_cmd.transform.translation.y = y
+        cam_to_cmd.transform.translation.z = z
+        q = tf_conversions.transformations.quaternion_from_euler(0, 0, ang)
+        cam_to_cmd.transform.rotation.x = q[0]
+        cam_to_cmd.transform.rotation.y = q[1]
+        cam_to_cmd.transform.rotation.z = q[2]
+        cam_to_cmd.transform.rotation.w = q[3]
+        tf_br.sendTransform(cam_to_cmd)
+
 
 depth_sub = rospy.Subscriber('/camera/depth/image_meters', Image, depth_callback, queue_size=1)
 robot_pos_sub = rospy.Subscriber('/m1n6s200_driver/out/tool_pose', PoseStamped, robot_pos_callback, queue_size=1)
 
-while not rospy.is_shutdown():
-    rospy.spin()
+rospy.spin()
