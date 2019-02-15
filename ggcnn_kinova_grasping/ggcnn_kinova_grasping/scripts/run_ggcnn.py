@@ -34,7 +34,7 @@ grasp_plain_pub = rospy.Publisher('ggcnn/img/grasp_plain', Image, queue_size=1)
 depth_pub = rospy.Publisher('ggcnn/img/depth', Image, queue_size=1)
 ang_pub = rospy.Publisher('ggcnn/img/ang', Image, queue_size=1)
 cmd_pub = rospy.Publisher('ggcnn/out/command', Float32MultiArray, queue_size=1)
-tf_br = tf2_ros.TransformBroadCaster()
+tf_br = tf2_ros.TransformBroadcaster()
 
 
 # Initialise some globals.
@@ -160,8 +160,6 @@ def depth_callback(depth_message):
         ang = ang_out[max_pixel[0], max_pixel[1]]
         width = width_out[max_pixel[0], max_pixel[1]]
 
-        rospy.loginfo('angle = {}'.format(ang))
-        rospy.loginfo('width = {}'.format(width))
         
         # Convert max_pixel back to uncropped/resized image coordinates in order to do the camera transform.
         max_pixel = ((np.array(max_pixel) / 300.0 * crop_size) + np.array([(480 - crop_size)//2, (640 - crop_size) // 2]))
